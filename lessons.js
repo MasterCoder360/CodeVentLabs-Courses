@@ -29,7 +29,7 @@ const LESSONS = {
 
         intro: [
             {
-                icon: 'code',
+                icon: 'python',
                 title: 'Meet Python',
                 text: [
                     'Python is a language that computers understand. When you write instructions in it, we call that code.',
