@@ -266,7 +266,142 @@ const LESSONS = {
                 explain: 'Text needs quotes: language = "Python". Single quotes work too.'
             }
         ]
-    }
+    },
 
-    // Next up: 'l1-3' (Types) …
+    /* ---------------- UNIT 1 · LESSON 3 ---------------- */
+    'l1-3': {
+        title: 'Know Your Types',
+        icon: 'shapes',
+        blurb: 'Numbers, text and true/false are different types — and quotes decide which.',
+
+        intro: [
+            {
+                icon: 'shapes',
+                title: 'Every value has a type',
+                text: [
+                    'Values are not all the same kind. A number, a piece of text and a yes/no answer are different types.',
+                    'Python remembers the type of every value, and the type decides what it can do with it.'
+                ],
+                code: 'print(7)'
+            },
+            {
+                icon: 'message-circle',
+                title: 'Text: str',
+                text: [
+                    'Text values are called strings, or str for short. They always wear quotes.',
+                    'The quotes are not part of the text — they are just how you tell Python it is a string.'
+                ],
+                code: 'name = "Ada"\nprint(name)',
+                output: 'Ada'
+            },
+            {
+                icon: 'ruler',
+                title: 'Numbers: int and float',
+                text: [
+                    'Whole numbers are int, short for integer. Numbers with a decimal point are float.',
+                    'Numbers never use quotes.'
+                ],
+                code: 'year = 2026\nprice = 4.5\nprint(year)\nprint(price)',
+                output: '2026\n4.5'
+            },
+            {
+                icon: 'toggle-right',
+                title: 'Yes or no: bool',
+                text: [
+                    'A boolean holds only True or False. The first letter is a capital and there are no quotes.',
+                    'Booleans are handy for things like whether a level has been finished.'
+                ],
+                code: 'finished = False\nprint(finished)',
+                output: 'False'
+            },
+            {
+                icon: 'sparkles',
+                title: 'Same look, different type',
+                text: [
+                    '7 is a number, but "7" is text that happens to look like a number. Python treats them differently.',
+                    'Numbers get added. Strings get joined together, end to end.'
+                ],
+                code: 'print(7 + 3)\nprint("7" + "3")',
+                output: '10\n73'
+            }
+        ],
+
+        questions: [
+            {
+                type: 'choice',
+                prompt: 'Which of these values is a string?',
+                options: ['"42"', '42', '4.2', 'True'],
+                answer: 0,
+                explain: 'Only "42" is inside quotes, so only "42" is text. 42 and 4.2 are numbers and True is a boolean.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What type is the value 3.14?',
+                options: ['float', 'int', 'str', 'bool'],
+                answer: 0,
+                explain: 'A number with a decimal point is a float. 3 is an int, "3.14" would be a str.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show? Type it exactly.',
+                code: 'print("7 + 3")',
+                answers: ['7 + 3'],
+                placeholder: 'Type the output…',
+                explain: 'The quotes make the whole thing a string, so Python shows it as it is instead of doing the maths.'
+            },
+            {
+                type: 'choice',
+                prompt: 'And what does this one show?',
+                code: 'print(7 + 3)',
+                options: ['10', '73', '7 + 3', 'Error'],
+                answer: 0,
+                explain: 'With no quotes these are numbers, so Python adds them: 10. With quotes it would be text: 73.'
+            },
+            {
+                type: 'choice',
+                prompt: 'Which of these values is a boolean?',
+                options: ['True', '"True"', 'true', '1'],
+                answer: 0,
+                explain: 'A boolean is True or False with a capital first letter and no quotes. "True" is text and true is not a Python value.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show?',
+                code: 'price = 2.5\nprint(price)',
+                answers: ['2.5'],
+                placeholder: 'Type the output…',
+                explain: 'price holds the float 2.5, and print() shows it exactly as it is.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What type is the value 42?',
+                options: ['int', 'float', 'str', 'bool'],
+                answer: 0,
+                explain: 'A whole number with no decimal point is an int (integer).'
+            },
+            {
+                type: 'type',
+                prompt: 'Your turn! Store the number 12 in a variable called age.',
+                answers: ['age = 12'],
+                isCode: true,
+                placeholder: 'Type your code…',
+                explain: 'age = 12 stores the int 12. No quotes, because quotes would make it the text "12".'
+            },
+            {
+                type: 'choice',
+                prompt: 'Which line stores the text Paris in a variable?',
+                options: ['city = "Paris"', 'city = Paris', 'city = 3.5', 'city = False'],
+                answer: 0,
+                explain: 'Without quotes Python looks for a variable called Paris, which does not exist. Text needs quotes: "Paris".'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show?',
+                code: 'flag = False\nprint(flag)',
+                answers: ['False'],
+                placeholder: 'Type the output…',
+                explain: 'flag holds the boolean False, and print() shows it with the capital F.'
+            }
+        ]
+    }
 };
