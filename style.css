@@ -651,8 +651,20 @@ body {
     color: #FFFFFF;
 }
 
-.unit-mascot .icon,
-.unit-mascot .brand-icon { width: 40px; height: 40px; }
+.unit-mascot .icon { width: 40px; height: 40px; }
+
+/* Brand marks keep their own colours, and the blue in the Python logo
+   clashes with the saturated unit colours, so brand marks sit on a
+   white chip instead of floating on the banner. */
+.unit-mascot .brand-icon {
+    width: 32px;
+    height: 32px;
+    padding: 7px;
+    box-sizing: content-box;
+    background: #FFFFFF;
+    border-radius: 14px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+}
 
 /* ---------- Lesson nodes (Duolingo circles) ---------- */
 .node {
@@ -919,8 +931,13 @@ body {
     .node-icon { width: 28px; height: 28px; }
 
     .unit-banner { margin: 34px 0 26px; padding: 14px 16px; }
-    .unit-mascot .icon,
-    .unit-mascot .brand-icon { width: 30px; height: 30px; }
+    .unit-mascot .icon { width: 30px; height: 30px; }
+    .unit-mascot .brand-icon {
+        width: 24px;
+        height: 24px;
+        padding: 5px;
+        border-radius: 11px;
+    }
     .path-title { font-size: 22px; }
 }
 
