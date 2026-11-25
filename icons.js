@@ -60,6 +60,8 @@ const ICONS = {
         '<path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z" /> <rect x="3" y="14" width="7" height="7" rx="1" /> <circle cx="17.5" cy="17.5" r="3.5" />',
     'toggle-right':
         '<circle cx="15" cy="12" r="3" /> <rect width="20" height="14" x="2" y="5" rx="7" />',
+    'calculator':
+        '<rect width="16" height="20" x="4" y="2" rx="2" /> <path d="M8 6h8" /> <path d="M16 14v4" /> <path d="M16 10h.01" /> <path d="M12 10h.01" /> <path d="M8 10h.01" /> <path d="M12 14h.01" /> <path d="M8 14h.01" /> <path d="M12 18h.01" /> <path d="M8 18h.01" />',
 };
 
 /* Brand marks keep their official artwork and colours, so they are
