@@ -13,11 +13,11 @@ const STORAGE_KEY = 'cvl_courses_v1';
 
 /* ---------- Course catalog ---------- */
 const COURSES = [
-    { id: 'python',  name: 'Python',        emoji: '🐍', available: true  },
-    { id: 'webdev',  name: 'Web Dev',       emoji: '🌐', available: false },
-    { id: 'robotics',name: 'Robotics',      emoji: '🤖', available: false },
-    { id: 'scratch', name: 'Scratch',       emoji: '🐱', available: false },
-    { id: 'ai',      name: 'AI Basics',     emoji: '🧠', available: false },
+    { id: 'python',  name: 'Python',        icon: 'code',                available: true  },
+    { id: 'webdev',  name: 'Web Dev',       icon: 'globe',               available: false },
+    { id: 'robotics',name: 'Robotics',      icon: 'bot',                 available: false },
+    { id: 'scratch', name: 'Scratch',       icon: 'cat',                 available: false },
+    { id: 'ai',      name: 'AI Basics',     icon: 'brain',               available: false },
 ];
 
 /* ---------- Default account state (guest) ---------- */
@@ -89,8 +89,10 @@ function renderCourseSelector() {
         btn.setAttribute('role', 'tab');
         btn.setAttribute('aria-selected', String(c.id === state.course));
         btn.title = c.available ? c.name : `${c.name} — coming soon`;
-        btn.innerHTML = `<span class="flag-emoji">${c.emoji}</span>
-                         <span class="flag-name">${c.name}</span>`;
+        const flagIcon = el('span', 'flag-icon');
+        flagIcon.appendChild(iconEl(c.icon));
+        btn.appendChild(flagIcon);
+        btn.appendChild(el('span', 'flag-name', c.name));
         btn.addEventListener('click', () => {
             if (!c.available) return;           // locked courses do nothing yet
             state.course = c.id;
@@ -150,7 +152,7 @@ function onNodeClick(node) {
     const id = node.dataset.lesson;
 
     if (node.classList.contains('locked')) {
-        document.getElementById('lessonModalTitle').textContent = 'Locked 🔒';
+        setModalTitle('lock', 'Locked');
         document.getElementById('lessonModalBody').textContent =
             'Finish the previous lesson to unlock this one.';
         document.getElementById('lessonModalStart').style.display = 'none';
@@ -165,13 +167,14 @@ function onNodeClick(node) {
     const lesson = LESSONS[id];
     const comingSoon = !isChest && !isTrophy && !isPractice && !lesson;
 
-    document.getElementById('lessonModalTitle').textContent =
-        isChest ? 'Reward Chest 🎁' : isTrophy ? 'Unit Review 🏆'
-        : lesson ? `${lesson.emoji} ${lesson.title}` : 'Lesson';
+    setModalTitle(
+        isChest ? 'gift' : isTrophy ? 'trophy' : lesson ? lesson.icon : 'book',
+        isChest ? 'Reward Chest' : isTrophy ? 'Unit Review'
+        : lesson ? lesson.title : 'Lesson');
     document.getElementById('lessonModalBody').textContent =
         isChest ? 'Open this chest to collect +20 gems.'
         : lesson ? lesson.blurb
-        : comingSoon ? 'This lesson is still being written. Check back soon! 🛠️'
+        : comingSoon ? 'This lesson is still being written. Check back soon!'
         : 'Complete this to earn XP and keep your streak alive!';
     const startBtn = document.getElementById('lessonModalStart');
     startBtn.style.display = comingSoon ? 'none' : '';
@@ -187,7 +190,7 @@ document.getElementById('lessonModalStart').addEventListener('click', () => {
     if (state.hearts <= 0 && !isChest) {
         document.getElementById('lessonModalBody').textContent =
             'You are out of hearts! Wait for them to refill or refill with 350 gems.';
-        document.getElementById('lessonModalStart').textContent = 'REFILL (350 💎)';
+        document.getElementById('lessonModalStart').textContent = 'REFILL · 350 gems';
         if (state.gems >= 350) {
             state.gems -= 350;
             state.hearts = 5;
@@ -248,6 +251,19 @@ function el(tag, cls, text) {
     return e;
 }
 
+function setModalTitle(iconName, text) {
+    const title = document.getElementById('lessonModalTitle');
+    title.textContent = '';
+    if (iconName) title.appendChild(iconEl(iconName));
+    title.appendChild(document.createTextNode(text));
+}
+
+function renderHearts() {
+    playerHearts.textContent = '';
+    playerHearts.appendChild(iconEl('heart', 'heart-icon'));
+    playerHearts.appendChild(document.createTextNode(String(state.hearts)));
+}
+
 function startLesson(id) {
     const lesson = LESSONS[id];
     run = {
@@ -286,7 +302,7 @@ function setFooter(mode, title, detail) {
 }
 
 function renderPlayer() {
-    playerHearts.textContent = '❤ ' + state.hearts;
+    renderHearts();
     playerBody.innerHTML = '';
     setFooter(null);
     playerAction.disabled = false;
@@ -294,7 +310,9 @@ function renderPlayer() {
     if (run.phase === 'intro') {
         const card = run.lesson.intro[run.introIdx];
         const wrap = el('div', 'p-card');
-        wrap.appendChild(el('div', 'p-emoji', card.emoji));
+        const cardIcon = el('div', 'p-icon');
+        cardIcon.appendChild(iconEl(card.icon));
+        wrap.appendChild(cardIcon);
         wrap.appendChild(el('h2', 'p-title', card.title));
         card.text.forEach(t => wrap.appendChild(el('p', 'p-text', t)));
         if (card.code) {
@@ -360,7 +378,9 @@ function renderPlayer() {
     if (run.phase === 'done') {
         const acc = Math.round((run.correct / (run.correct + run.mistakes)) * 100);
         const wrap = el('div', 'p-card');
-        wrap.appendChild(el('div', 'p-emoji', run.mistakes === 0 ? '🏆' : '🎉'));
+        const doneIcon = el('div', 'p-icon');
+        doneIcon.appendChild(iconEl(run.mistakes === 0 ? 'trophy' : 'party-popper'));
+        wrap.appendChild(doneIcon);
         wrap.appendChild(el('h2', 'p-title', 'Lesson complete!'));
         wrap.appendChild(el('p', 'p-text',
             run.mistakes === 0 ? 'Perfect run, no mistakes!' : 'Nice work. Mistakes are how coders learn.'));
@@ -381,7 +401,9 @@ function renderPlayer() {
 
     if (run.phase === 'out') {
         const wrap = el('div', 'p-card');
-        wrap.appendChild(el('div', 'p-emoji', '💔'));
+        const outIcon = el('div', 'p-icon out');
+        outIcon.appendChild(iconEl('heart-crack'));
+        wrap.appendChild(outIcon);
         wrap.appendChild(el('h2', 'p-title', 'Out of hearts!'));
         wrap.appendChild(el('p', 'p-text',
             'No worries. Hearts come back, or you can refill them with gems from the map. Then try this lesson again!'));
@@ -424,13 +446,13 @@ function checkAnswer() {
 
     if (ok) {
         run.correct++;
-        setFooter('correct', 'Nice! 🎉', q.explain);
+        setFooter('correct', 'Nice!', q.explain);
     } else {
         run.mistakes++;
         state.hearts = Math.max(0, state.hearts - 1);
         saveState();
         renderStats();
-        playerHearts.textContent = '❤ ' + state.hearts;
+        renderHearts();
         run.queue.push(q);   // asked again at the end
         setFooter('incorrect', 'Not quite. Answer: ' + shown, q.explain);
     }
@@ -502,6 +524,7 @@ function updateCartCount(newCount) { cartCountElement.textContent = newCount; }
 function addToCart() { updateCartCount(parseInt(cartCountElement.textContent || '0', 10) + 1); }
 
 /* ---------- Init ---------- */
+hydrateIcons();
 renderStats();
 renderCourseSelector();
 renderPath();
