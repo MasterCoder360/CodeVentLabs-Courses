@@ -27,6 +27,16 @@ body {
     stroke-linejoin: round;
 }
 
+/* Brand marks (e.g. the Python logo) carry their own colours, so they
+   are sized like icons but never re-coloured. */
+.brand-icon {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: -0.125em;
+    flex: none;
+}
+
 .intro-section {
     position: relative;
     width: 100%;
@@ -477,7 +487,8 @@ body {
     transition: filter 0.2s ease, opacity 0.2s ease;
 }
 
-.course-flag .flag-icon .icon { width: 34px; height: 34px; }
+.course-flag .flag-icon .icon,
+.course-flag .flag-icon .brand-icon { width: 34px; height: 34px; }
 
 .course-flag.active .flag-icon,
 .course-flag.available .flag-icon {
@@ -640,7 +651,8 @@ body {
     color: #FFFFFF;
 }
 
-.unit-mascot .icon { width: 40px; height: 40px; }
+.unit-mascot .icon,
+.unit-mascot .brand-icon { width: 40px; height: 40px; }
 
 /* ---------- Lesson nodes (Duolingo circles) ---------- */
 .node {
@@ -719,7 +731,10 @@ body {
     border-bottom-color: #CFCFCF;
 }
 
-.node.locked .node-icon { stroke: #AFAFAF; }
+.node.locked .node-icon {
+    stroke: #AFAFAF;
+    fill: rgba(175, 175, 175, 0.3);
+}
 
 /* Chest & trophy variants */
 .node.node-chest .node-bubble { background: #FF9600; border-bottom-color: #E08600; }
@@ -807,7 +822,8 @@ body {
     margin-bottom: 10px;
 }
 
-.modal h3 .icon {
+.modal h3 .icon,
+.modal h3 .brand-icon {
     width: 24px;
     height: 24px;
     margin-right: 8px;
@@ -903,7 +919,8 @@ body {
     .node-icon { width: 28px; height: 28px; }
 
     .unit-banner { margin: 34px 0 26px; padding: 14px 16px; }
-    .unit-mascot { font-size: 30px; }
+    .unit-mascot .icon,
+    .unit-mascot .brand-icon { width: 30px; height: 30px; }
     .path-title { font-size: 22px; }
 }
 
@@ -988,7 +1005,8 @@ body.no-scroll { overflow: hidden; }
 /* Intro cards + end screens */
 .p-card { text-align: center; padding-top: 18px; animation: pIn 0.3s ease; }
 .p-icon { color: #58CC02; margin-bottom: 12px; line-height: 1; }
-.p-icon .icon { width: 68px; height: 68px; }
+.p-icon .icon,
+.p-icon .brand-icon { width: 68px; height: 68px; }
 .p-icon.out { color: #FF4B4B; }
 .p-title { font-size: 28px; font-weight: 800; margin-bottom: 16px; }
 .p-text { font-size: 18px; line-height: 1.55; color: #555; margin-bottom: 14px; }
