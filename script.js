@@ -13,7 +13,7 @@ const STORAGE_KEY = 'cvl_courses_v1';
 
 /* ---------- Course catalog ---------- */
 const COURSES = [
-    { id: 'python',  name: 'Python',        icon: 'code',                available: true  },
+    { id: 'python',  name: 'Python',        icon: 'python',              available: true  },
     { id: 'webdev',  name: 'Web Dev',       icon: 'globe',               available: false },
     { id: 'robotics',name: 'Robotics',      icon: 'bot',                 available: false },
     { id: 'scratch', name: 'Scratch',       icon: 'cat',                 available: false },
