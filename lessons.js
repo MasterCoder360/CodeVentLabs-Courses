@@ -403,5 +403,152 @@ const LESSONS = {
                 explain: 'flag holds the boolean False, and print() shows it with the capital F.'
             }
         ]
+    },
+
+    /* ---------------- UNIT 1 · LESSON 4 ---------------- */
+    'l1-4': {
+        title: 'Do the Math',
+        icon: 'calculator',
+        blurb: 'Add, subtract, multiply and divide — and see why division hands back a decimal.',
+
+        intro: [
+            {
+                icon: 'calculator',
+                title: 'Python is a calculator',
+                text: [
+                    'Python can do maths for you. You write the sum, and Python works out the answer.',
+                    'Put the sum inside print() and the answer appears on the screen.'
+                ],
+                code: 'print(2 + 3)',
+                output: '5'
+            },
+            {
+                icon: 'pencil',
+                title: 'Four signs to know',
+                text: [
+                    'Python uses the same four signs as a calculator: + to add, - to subtract, * to multiply and / to divide.',
+                    'The star * means times. It is not the letter x.'
+                ],
+                code: 'print(4 + 6)\nprint(9 - 3)\nprint(3 * 5)',
+                output: '10\n6\n15'
+            },
+            {
+                icon: 'zap',
+                title: 'Dividing gives a decimal',
+                text: [
+                    'Here is a surprise. Division with / always gives a float, even when the answer is a whole number.',
+                    'So 10 / 5 is not 2, it is 2.0. A number with a .0 is still a perfectly good answer.'
+                ],
+                code: 'print(10 / 5)\nprint(9 / 2)',
+                output: '2.0\n4.5'
+            },
+            {
+                icon: 'refresh-cw',
+                title: 'Maths with variables',
+                text: [
+                    'Variables are good at maths too. Python swaps in the value inside each name, then works out the sum.',
+                    'You can even use a variable to update itself: score = score + 5 means take the old score, add 5, and store it back.'
+                ],
+                code: 'score = 10\nscore = score + 5\nprint(score)',
+                output: '15'
+            },
+            {
+                icon: 'heart-crack',
+                title: 'Text and numbers do not mix',
+                text: [
+                    'The plus sign joins two strings together, but it cannot join a string to a number. Python stops with an error instead of guessing.',
+                    'If you need both, keep the number as a separate print() for now.'
+                ],
+                code: 'print("Hi, " + "Ada")\nprint("Age: " + 12)',
+                output: 'Hi, Ada\nTypeError: can only concatenate str (not "int") to str'
+            }
+        ],
+
+        questions: [
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'print(5 + 4)',
+                options: ['9', '54', '5 + 4', 'Error'],
+                answer: 0,
+                explain: 'With no quotes these are numbers, so Python adds them: 9.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'print(10 / 2)',
+                options: ['5.0', '5', '5.5', 'Error'],
+                answer: 0,
+                explain: 'Division with / always gives a float, even for a whole answer, so you get 5.0 rather than 5.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show?',
+                code: 'print(7 * 6)',
+                answers: ['42'],
+                placeholder: 'Type the output…',
+                explain: 'The star means times, so 7 * 6 is 42.'
+            },
+            {
+                type: 'choice',
+                prompt: 'Which sign does Python use to multiply?',
+                options: ['*', '/', 'x', '^'],
+                answer: 0,
+                explain: 'The star * multiplies. The letter x is not an operator, and / divides.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show?',
+                code: 'print(20 - 8)',
+                answers: ['12'],
+                placeholder: 'Type the output…',
+                explain: 'The minus sign subtracts, so 20 - 8 is 12.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'score = 10\nscore = score + 5\nprint(score)',
+                options: ['15', '10', '5', '105'],
+                answer: 0,
+                explain: 'The second line takes the old 10, adds 5, and stores 15 back into score. Then 15 is printed.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'print("2" + "3")',
+                options: ['23', '5', '2 + 3', 'Error'],
+                answer: 0,
+                explain: 'These are strings, so the plus sign joins them end to end: 23. With no quotes it would be 5.'
+            },
+            {
+                type: 'type',
+                prompt: 'Your turn! Store the answer to 8 + 4 in a variable called total.',
+                answers: ['total = 8 + 4'],
+                isCode: true,
+                placeholder: 'Type your code…',
+                explain: 'Python works out 8 + 4 first and stores 12 in total. Nothing is printed until you print it.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What happens when this code runs?',
+                code: 'print("Score: " + 10)',
+                options: [
+                    'It stops with an error, because text cannot be joined to a number',
+                    'It shows Score: 10',
+                    'It shows 10',
+                    'It shows Score: 1010'
+                ],
+                answer: 0,
+                explain: 'The left side is a string and the right side is an int. The plus sign cannot join them, so Python raises a TypeError.'
+            },
+            {
+                type: 'type',
+                prompt: 'Last one. What does this code show? Type it exactly.',
+                code: 'print(9 / 3)',
+                answers: ['3.0'],
+                placeholder: 'Type the output…',
+                explain: 'Division with / gives a float, so 9 / 3 is 3.0 and not 3.'
+            }
+        ]
     }
 };
