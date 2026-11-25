@@ -229,10 +229,27 @@
         </div>
     </div>
 
+    <!-- ===== LESSON PLAYER (full-screen; driven by script.js + lessons.js) ===== -->
+    <div class="player hidden" id="player" role="dialog" aria-modal="true" aria-label="Lesson">
+        <div class="player-top">
+            <button class="player-quit" id="playerQuit" aria-label="Quit lesson">&times;</button>
+            <div class="player-bar"><div class="player-bar-fill" id="playerFill"></div></div>
+            <span class="player-hearts" id="playerHearts">❤ 5</span>
+        </div>
+        <div class="player-body" id="playerBody"></div>
+        <div class="player-footer" id="playerFooter">
+            <div class="player-footer-inner">
+                <div class="player-feedback" id="playerFeedback" aria-live="polite"></div>
+                <button class="btn-primary player-action" id="playerAction">CONTINUE</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <p>CodeVent Labs · <a href="https://labs.cosmospark.org">labs.cosmospark.org</a> · <a href="account.html">Accounts</a></p>
     </footer>
 
+    <script src="lessons.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

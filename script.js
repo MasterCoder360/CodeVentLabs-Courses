@@ -113,22 +113,18 @@ function completedSet() {
 
 function renderPath() {
     const done = completedSet();
-    let currentAssigned = false;
+    // Nodes unlock strictly in map order: the first unfinished node is "current".
+    const currentNode = nodes.find(n => !done.has(n.dataset.lesson));
 
     nodes.forEach(node => {
         const id = node.dataset.lesson;
         node.classList.remove('completed', 'current', 'locked');
-        if (done.has(id)) {
-            node.classList.add('completed');
-        } else if (!currentAssigned && node === lessonNodes.find(n => !done.has(n.dataset.lesson))) {
-            node.classList.add('current');
-            currentAssigned = true;
-        } else {
-            node.classList.add('locked');
-        }
+        if (done.has(id)) node.classList.add('completed');
+        else if (node === currentNode) node.classList.add('current');
+        else node.classList.add('locked');
     });
 
-    // Progress bar = completed lessons / total lesson nodes
+    // Progress bar = completed nodes / total nodes
     const pct = Math.round((done.size / nodes.length) * 100);
     document.getElementById('pathProgressFill').style.width = pct + '%';
     document.getElementById('pathProgressText').textContent = pct + '%';
@@ -165,14 +161,21 @@ function onNodeClick(node) {
 
     const isChest = node.classList.contains('node-chest');
     const isTrophy = node.classList.contains('node-trophy');
+    const isPractice = node.classList.contains('node-practice');
+    const lesson = LESSONS[id];
+    const comingSoon = !isChest && !isTrophy && !isPractice && !lesson;
 
     document.getElementById('lessonModalTitle').textContent =
-        isChest ? 'Reward Chest 🎁' : isTrophy ? 'Unit Review 🏆' : 'Lesson';
+        isChest ? 'Reward Chest 🎁' : isTrophy ? 'Unit Review 🏆'
+        : lesson ? `${lesson.emoji} ${lesson.title}` : 'Lesson';
     document.getElementById('lessonModalBody').textContent =
         isChest ? 'Open this chest to collect +20 gems.'
-                : 'Complete this lesson to earn XP and keep your streak alive!';
-    document.getElementById('lessonModalStart').style.display = '';
-    document.getElementById('lessonModalStart').textContent = isChest ? 'OPEN' : 'START';
+        : lesson ? lesson.blurb
+        : comingSoon ? 'This lesson is still being written. Check back soon! 🛠️'
+        : 'Complete this to earn XP and keep your streak alive!';
+    const startBtn = document.getElementById('lessonModalStart');
+    startBtn.style.display = comingSoon ? 'none' : '';
+    startBtn.textContent = isChest ? 'OPEN' : 'START';
     pendingLesson = { node, id, isChest };
     openModal(lessonModal);
 }
@@ -195,6 +198,14 @@ document.getElementById('lessonModalStart').addEventListener('click', () => {
         return;
     }
 
+    // Real lessons open the full-screen lesson player
+    if (LESSONS[id]) {
+        pendingLesson = null;
+        closeModal(lessonModal);
+        startLesson(id);
+        return;
+    }
+
     const list = state.completed[state.course] || (state.completed[state.course] = []);
     if (!list.includes(id)) {
         list.push(id);
@@ -210,6 +221,280 @@ document.getElementById('lessonModalStart').addEventListener('click', () => {
 });
 
 nodes.forEach(n => n.addEventListener('click', () => onNodeClick(n)));
+
+/* ============================================================
+   LESSON PLAYER
+   intro cards -> questions (wrong answers repeat at the end)
+   -> result screen. Wrong answer = -1 heart.
+   ============================================================ */
+const player = document.getElementById('player');
+const playerBody = document.getElementById('playerBody');
+const playerFooter = document.getElementById('playerFooter');
+const playerFeedback = document.getElementById('playerFeedback');
+const playerAction = document.getElementById('playerAction');
+const playerFill = document.getElementById('playerFill');
+const playerHearts = document.getElementById('playerHearts');
+
+const XP_LESSON = 15;
+const XP_PERFECT_BONUS = 5;
+const XP_REPLAY = 5;
+
+let run = null;   // state of the lesson currently being played
+
+function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+}
+
+function startLesson(id) {
+    const lesson = LESSONS[id];
+    run = {
+        id, lesson,
+        phase: 'intro',          // intro | question | done | out
+        introIdx: 0,
+        queue: lesson.questions.slice(),
+        total: lesson.questions.length,
+        correct: 0,
+        mistakes: 0,
+        checked: false,
+        selected: null,
+        reward: 0
+    };
+    player.classList.remove('hidden');
+    document.body.classList.add('no-scroll');
+    renderPlayer();
+}
+
+function closePlayer() {
+    player.classList.add('hidden');
+    document.body.classList.remove('no-scroll');
+    run = null;
+    renderStats();
+    renderPath();
+}
+
+function setFooter(mode, title, detail) {
+    playerFooter.classList.remove('correct', 'incorrect');
+    if (mode) playerFooter.classList.add(mode);
+    playerFeedback.textContent = '';
+    if (title) {
+        playerFeedback.appendChild(el('strong', '', title));
+        if (detail) playerFeedback.appendChild(document.createTextNode(detail));
+    }
+}
+
+function renderPlayer() {
+    playerHearts.textContent = '❤ ' + state.hearts;
+    playerBody.innerHTML = '';
+    setFooter(null);
+    playerAction.disabled = false;
+
+    if (run.phase === 'intro') {
+        const card = run.lesson.intro[run.introIdx];
+        const wrap = el('div', 'p-card');
+        wrap.appendChild(el('div', 'p-emoji', card.emoji));
+        wrap.appendChild(el('h2', 'p-title', card.title));
+        card.text.forEach(t => wrap.appendChild(el('p', 'p-text', t)));
+        if (card.code) {
+            wrap.appendChild(el('div', 'p-label', 'CODE'));
+            wrap.appendChild(el('pre', 'p-code', card.code));
+        }
+        if (card.output) {
+            wrap.appendChild(el('div', 'p-label', 'WHAT YOU SEE'));
+            wrap.appendChild(el('pre', 'p-output', card.output));
+        }
+        playerBody.appendChild(wrap);
+        playerFill.style.width = '0%';
+        const last = run.introIdx === run.lesson.intro.length - 1;
+        playerAction.textContent = last ? "LET'S GO!" : 'CONTINUE';
+        return;
+    }
+
+    if (run.phase === 'question') {
+        const q = run.queue[0];
+        const wrap = el('div', 'p-question');
+        wrap.appendChild(el('h2', 'p-prompt', q.prompt));
+        if (q.code) wrap.appendChild(el('pre', 'p-code', q.code));
+
+        if (q.type === 'choice') {
+            const list = el('div', 'p-options');
+            q.options.forEach((opt, i) => {
+                const b = el('button', 'p-option');
+                b.type = 'button';
+                b.appendChild(el('span', 'p-key', String(i + 1)));
+                b.appendChild(el('span', '', opt));
+                b.addEventListener('click', () => {
+                    if (run.checked) return;
+                    run.selected = i;
+                    list.querySelectorAll('.p-option').forEach((o, j) =>
+                        o.classList.toggle('selected', j === i));
+                    playerAction.disabled = false;
+                });
+                list.appendChild(b);
+            });
+            wrap.appendChild(list);
+        } else {
+            const input = el('input', 'p-input');
+            input.type = 'text';
+            input.id = 'playerInput';
+            input.placeholder = q.placeholder || 'Type your answer…';
+            input.autocomplete = 'off';
+            input.autocapitalize = 'off';
+            input.spellcheck = false;
+            input.addEventListener('input', () => {
+                playerAction.disabled = input.value.trim() === '';
+            });
+            wrap.appendChild(input);
+            setTimeout(() => input.focus(), 50);
+        }
+        playerBody.appendChild(wrap);
+
+        playerFill.style.width = Math.round((run.correct / run.total) * 100) + '%';
+        playerAction.textContent = 'CHECK';
+        playerAction.disabled = true;
+        return;
+    }
+
+    if (run.phase === 'done') {
+        const acc = Math.round((run.correct / (run.correct + run.mistakes)) * 100);
+        const wrap = el('div', 'p-card');
+        wrap.appendChild(el('div', 'p-emoji', run.mistakes === 0 ? '🏆' : '🎉'));
+        wrap.appendChild(el('h2', 'p-title', 'Lesson complete!'));
+        wrap.appendChild(el('p', 'p-text',
+            run.mistakes === 0 ? 'Perfect run, no mistakes!' : 'Nice work. Mistakes are how coders learn.'));
+        const stats = el('div', 'p-stats');
+        [['+' + run.reward, 'XP EARNED'], [acc + '%', 'ACCURACY'], [state.hearts, 'HEARTS LEFT']]
+            .forEach(([v, l]) => {
+                const s = el('div', 'p-stat');
+                s.appendChild(el('b', '', String(v)));
+                s.appendChild(el('span', '', l));
+                stats.appendChild(s);
+            });
+        wrap.appendChild(stats);
+        playerBody.appendChild(wrap);
+        playerFill.style.width = '100%';
+        playerAction.textContent = 'CONTINUE';
+        return;
+    }
+
+    if (run.phase === 'out') {
+        const wrap = el('div', 'p-card');
+        wrap.appendChild(el('div', 'p-emoji', '💔'));
+        wrap.appendChild(el('h2', 'p-title', 'Out of hearts!'));
+        wrap.appendChild(el('p', 'p-text',
+            'No worries. Hearts come back, or you can refill them with gems from the map. Then try this lesson again!'));
+        playerBody.appendChild(wrap);
+        playerAction.textContent = 'BACK TO MAP';
+    }
+}
+
+/* Forgiving answer matching for "type it" questions */
+function normalize(str, isCode) {
+    let s = str.trim().replace(/\s+/g, ' ');
+    if (isCode) {
+        s = s.replace(/'/g, '"').replace(/\s*\(\s*/g, '(').replace(/\s*\)\s*/g, ')');
+    }
+    return s;
+}
+
+function checkAnswer() {
+    const q = run.queue[0];
+    let ok, shown;
+
+    if (q.type === 'choice') {
+        ok = run.selected === q.answer;
+        shown = q.options[q.answer];
+        const opts = playerBody.querySelectorAll('.p-option');
+        opts.forEach(o => o.classList.add('locked'));
+        opts[run.selected].classList.remove('selected');
+        opts[run.selected].classList.add(ok ? 'right' : 'wrong');
+        if (!ok) opts[q.answer].classList.add('right');
+    } else {
+        const input = document.getElementById('playerInput');
+        const given = normalize(input.value, q.isCode);
+        ok = q.answers.some(a => normalize(a, q.isCode) === given);
+        shown = q.answers[0];
+        input.disabled = true;
+        input.classList.add(ok ? 'right' : 'wrong');
+    }
+
+    run.checked = true;
+
+    if (ok) {
+        run.correct++;
+        setFooter('correct', 'Nice! 🎉', q.explain);
+    } else {
+        run.mistakes++;
+        state.hearts = Math.max(0, state.hearts - 1);
+        saveState();
+        renderStats();
+        playerHearts.textContent = '❤ ' + state.hearts;
+        run.queue.push(q);   // asked again at the end
+        setFooter('incorrect', 'Not quite. Answer: ' + shown, q.explain);
+    }
+    playerFill.style.width = Math.round((run.correct / run.total) * 100) + '%';
+    playerAction.textContent = 'CONTINUE';
+    playerAction.disabled = false;
+}
+
+function finishLesson() {
+    const list = state.completed[state.course] || (state.completed[state.course] = []);
+    const first = !list.includes(run.id);
+    if (first) list.push(run.id);
+    run.reward = first ? XP_LESSON + (run.mistakes === 0 ? XP_PERFECT_BONUS : 0) : XP_REPLAY;
+    state.xp += run.reward;
+    touchStreak();
+    saveState();
+    renderStats();
+    run.phase = 'done';
+    renderPlayer();
+}
+
+playerAction.addEventListener('click', () => {
+    if (!run) return;
+
+    if (run.phase === 'intro') {
+        if (run.introIdx < run.lesson.intro.length - 1) run.introIdx++;
+        else run.phase = 'question';
+        renderPlayer();
+    } else if (run.phase === 'question') {
+        if (!run.checked) { checkAnswer(); return; }
+        run.queue.shift();
+        run.checked = false;
+        run.selected = null;
+        if (state.hearts <= 0 && run.mistakes > 0 && run.correct < run.total) {
+            run.phase = 'out';
+            renderPlayer();
+        } else if (run.queue.length === 0) {
+            finishLesson();
+        } else {
+            renderPlayer();
+        }
+    } else {
+        closePlayer();   // done / out
+    }
+});
+
+document.getElementById('playerQuit').addEventListener('click', () => {
+    if (!run) return;
+    if (run.phase === 'done' || run.phase === 'out' ||
+        confirm('Quit this lesson? Your progress in it will be lost.')) closePlayer();
+});
+
+/* Keyboard: Enter = Check/Continue, 1-4 pick an answer */
+document.addEventListener('keydown', e => {
+    if (!run || player.classList.contains('hidden')) return;
+    if (e.key === 'Enter' && !playerAction.disabled) {
+        e.preventDefault();
+        playerAction.click();
+    } else if (run.phase === 'question' && !run.checked && /^[1-9]$/.test(e.key)
+               && run.queue[0].type === 'choice' && e.target.tagName !== 'INPUT') {
+        const opts = playerBody.querySelectorAll('.p-option');
+        if (opts[+e.key - 1]) opts[+e.key - 1].click();
+    }
+});
 
 /* ---------- Cart badge (kept from main site) ---------- */
 const cartCountElement = document.getElementById('cartCount');
