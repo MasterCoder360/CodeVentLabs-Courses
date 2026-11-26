@@ -12,7 +12,7 @@ const ALLOWED_ORIGINS = new Set([
     'https://courses.labs.cosmospark.org',
 ]);
 
-function originAllowed(origin) {
+export function allowedOrigin(origin) {
     if (!origin) return false;
     if (ALLOWED_ORIGINS.has(origin)) return true;
     // Local development (any port) so the page can be tested locally.
@@ -22,7 +22,7 @@ function originAllowed(origin) {
 export function corsHeaders(request) {
     const origin = request.headers.get('Origin') || '';
     const headers = { 'Vary': 'Origin' };
-    if (originAllowed(origin)) {
+    if (allowedOrigin(origin)) {
         headers['Access-Control-Allow-Origin'] = origin;
         headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, OPTIONS';
         headers['Access-Control-Allow-Headers'] = 'Authorization, Content-Type';
