@@ -29,6 +29,9 @@
 }
 
 .account-panel.hidden { display: none; }
+/* The id below sets display: grid, which outranks the class rule, so the
+   signed-out panel needs its own hidden rule. */
+#signedOut.hidden { display: none; }
 
 #signedOut {
     display: grid;
