@@ -77,7 +77,7 @@
                            placeholder="you@example.com" maxlength="254" required>
                 </div>
 
-                <div class="field">
+                <div class="field" id="passwordField">
                     <label for="authPassword">Password</label>
                     <div class="field-inline">
                         <input id="authPassword" name="password" type="password"
@@ -88,9 +88,19 @@
                     </div>
                 </div>
 
+                <p class="field-link" id="forgotWrap">
+                    <button type="button" class="link-button" id="forgotBtn">Forgot your password?</button>
+                </p>
+
                 <p class="form-error" id="authError" role="alert" hidden></p>
+                <div class="auth-notice" id="authNotice" role="status" hidden></div>
 
                 <button type="submit" class="btn-primary auth-submit" id="authSubmit">SIGN IN</button>
+
+                <div class="auth-social" id="authSocial" hidden>
+                    <p class="auth-divider"><span>or</span></p>
+                    <div class="social-buttons" id="socialButtons"></div>
+                </div>
 
                 <p class="auth-note" id="authNote">
                     New here? Choose <strong>Create account</strong> and your guest progress on this
@@ -112,14 +122,49 @@
             </aside>
         </section>
 
+        <!-- ===== RESET PASSWORD (from an emailed link) ===== -->
+        <section class="account-panel hidden" id="resetPanel">
+            <form class="account-card reset-card" id="resetForm" novalidate>
+                <h2 class="card-title">Choose a new password</h2>
+                <p class="reset-intro">Your reset link works once. Pick a password with at least 8 characters.</p>
+
+                <div class="field">
+                    <label for="resetPassword">New password</label>
+                    <input id="resetPassword" type="password" autocomplete="new-password"
+                           placeholder="At least 8 characters" maxlength="200" required>
+                </div>
+
+                <div class="field">
+                    <label for="resetPassword2">Repeat it</label>
+                    <input id="resetPassword2" type="password" autocomplete="new-password"
+                           placeholder="Same password again" maxlength="200" required>
+                </div>
+
+                <p class="form-error" id="resetError" role="alert" hidden></p>
+
+                <button type="submit" class="btn-primary auth-submit" id="resetSubmit">SAVE AND SIGN IN</button>
+
+                <p class="auth-note">
+                    <a href="account.html" id="resetCancel">Back to sign in</a>
+                </p>
+            </form>
+        </section>
+
         <!-- ===== SIGNED IN ===== -->
         <section class="account-panel hidden" id="signedIn">
+            <div class="verify-banner" id="verifyBanner" hidden>
+                <span class="verify-banner-icon" data-icon="mail"></span>
+                <p id="verifyText">Confirm your email address so we can help you recover your account.</p>
+                <button type="button" class="btn-secondary" id="verifyResend">SEND LINK</button>
+            </div>
+
             <div class="profile-card">
                 <div class="profile-avatar" data-icon="user"></div>
                 <div class="profile-text">
                     <h2 id="profileName">Learner</h2>
                     <p id="profileEmail"></p>
                     <p class="profile-since" id="profileSince"></p>
+                    <p class="profile-badges" id="profileBadges"></p>
                 </div>
                 <button type="button" class="btn-secondary" id="signOut">
                     <span data-icon="log-out"></span> SIGN OUT

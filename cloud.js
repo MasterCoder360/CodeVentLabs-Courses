@@ -36,6 +36,8 @@ const CLOUD = (() => {
     let user = null;
     try { user = JSON.parse(read(USER_KEY) || 'null'); } catch { user = null; }
 
+    let configCache = null;
+
     async function request(path, options) {
         const opts = options || {};
         const headers = { 'Content-Type': 'application/json' };
@@ -104,8 +106,16 @@ const CLOUD = (() => {
         };
     }
 
+    /* Which extras this deployment has configured: social sign-in
+       providers and email sending. Cached for the life of the page. */
+    async function loadConfig() {
+        if (!configCache) configCache = await request('/api/config');
+        return configCache;
+    }
+
     return {
         mergeProgress,
+        config: loadConfig,
         apiBase: CLOUD_API,
         get user() { return user; },
         hasToken() { return !!token; },
@@ -143,6 +153,36 @@ const CLOUD = (() => {
         async saveProgress(state) {
             const data = await request('/api/progress', { method: 'PUT', body: { state } });
             return data;
+        },
+
+        /* Used after a social sign-in or a password reset hands the page
+           a token in the URL fragment. */
+        setToken(nextToken) { remember(nextToken, null); },
+
+        async forgotPassword(email) {
+            return request('/api/password/forgot', { method: 'POST', body: { email } });
+        },
+
+        async resetPassword(resetToken, password) {
+            const data = await request('/api/password/reset', {
+                method: 'POST',
+                body: { token: resetToken, password },
+            });
+            remember(data.token, data.user);
+            return data;
+        },
+
+        async verifyEmail(verifyToken) {
+            return request('/api/verify', { method: 'POST', body: { token: verifyToken } });
+        },
+
+        async resendVerification() {
+            return request('/api/verify/resend', { method: 'POST' });
+        },
+
+        oauthUrl(provider) {
+            return CLOUD_API + '/api/oauth/' + encodeURIComponent(provider)
+                + '/start?origin=' + encodeURIComponent(location.origin);
         },
 
         forget() { remember(null, null); },
