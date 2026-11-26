@@ -239,9 +239,9 @@ function onNodeClick(node) {
     const comingSoon = !isChest && !isTrophy && !isPractice && !lesson;
 
     setModalTitle(
-        isChest ? 'gift' : isTrophy ? 'trophy' : lesson ? lesson.icon : 'book',
-        isChest ? 'Reward Chest' : isTrophy ? 'Unit Review'
-        : lesson ? lesson.title : 'Lesson');
+        isChest ? 'gift' : lesson ? lesson.icon : isTrophy ? 'trophy' : 'book',
+        isChest ? 'Reward Chest' : lesson ? lesson.title
+        : isTrophy ? 'Unit Review' : 'Lesson');
     document.getElementById('lessonModalBody').textContent =
         isChest ? 'Open this chest to collect +20 gems.'
         : lesson ? lesson.blurb
@@ -339,12 +339,14 @@ function startLesson(id) {
     const lesson = LESSONS[id];
     run = {
         id, lesson,
-        phase: 'intro',          // intro | question | done | out
+        phase: 'intro',          // intro | question | done | retry | out
         introIdx: 0,
         queue: lesson.questions.slice(),
         total: lesson.questions.length,
         correct: 0,
         mistakes: 0,
+        accuracy: 0,
+        pass: lesson.pass || 0,  // unit quizzes need this % to count as passed
         checked: false,
         selected: null,
         reward: 0
@@ -446,15 +448,40 @@ function renderPlayer() {
         return;
     }
 
+    if (run.phase === 'retry') {
+        const wrap = el('div', 'p-card');
+        const retryIcon = el('div', 'p-icon');
+        retryIcon.appendChild(iconEl('refresh-cw'));
+        wrap.appendChild(retryIcon);
+        wrap.appendChild(el('h2', 'p-title', 'Not passed yet'));
+        wrap.appendChild(el('p', 'p-text',
+            `You scored ${run.accuracy}%. The unit quiz needs ${run.pass}% to pass, so this unit is still open.`));
+        const stats = el('div', 'p-stats');
+        [[run.accuracy + '%', 'ACCURACY'], [run.mistakes, 'MISSED'], [run.pass + '%', 'TO PASS']]
+            .forEach(([v, l]) => {
+                const s = el('div', 'p-stat');
+                s.appendChild(el('b', '', String(v)));
+                s.appendChild(el('span', '', l));
+                stats.appendChild(s);
+            });
+        wrap.appendChild(stats);
+        playerBody.appendChild(wrap);
+        playerFill.style.width = run.accuracy + '%';
+        playerAction.textContent = 'TRY AGAIN';
+        return;
+    }
+
     if (run.phase === 'done') {
-        const acc = Math.round((run.correct / (run.correct + run.mistakes)) * 100);
+        const acc = run.accuracy;
         const wrap = el('div', 'p-card');
         const doneIcon = el('div', 'p-icon');
         doneIcon.appendChild(iconEl(run.mistakes === 0 ? 'trophy' : 'party-popper'));
         wrap.appendChild(doneIcon);
-        wrap.appendChild(el('h2', 'p-title', 'Lesson complete!'));
+        wrap.appendChild(el('h2', 'p-title', run.lesson.doneTitle || 'Lesson complete!'));
         wrap.appendChild(el('p', 'p-text',
-            run.mistakes === 0 ? 'Perfect run, no mistakes!' : 'Nice work. Mistakes are how coders learn.'));
+            run.mistakes === 0 ? 'Perfect run, no mistakes!'
+            : run.pass ? 'Passed! Every lesson in this unit is now behind you.'
+            : 'Nice work. Mistakes are how coders learn.'));
         const stats = el('div', 'p-stats');
         [['+' + run.reward, 'XP EARNED'], [acc + '%', 'ACCURACY'], [state.hearts, 'HEARTS LEFT']]
             .forEach(([v, l]) => {
@@ -533,10 +560,22 @@ function checkAnswer() {
 }
 
 function finishLesson() {
+    run.accuracy = Math.round((run.correct / (run.correct + run.mistakes)) * 100);
+
+    // A unit quiz only counts when the pass mark is reached; below it the
+    // screen offers another go and the unit stays unfinished.
+    if (run.pass && run.accuracy < run.pass) {
+        run.phase = 'retry';
+        renderPlayer();
+        return;
+    }
+
     const list = state.completed[state.course] || (state.completed[state.course] = []);
     const first = !list.includes(run.id);
     if (first) list.push(run.id);
-    run.reward = first ? XP_LESSON + (run.mistakes === 0 ? XP_PERFECT_BONUS : 0) : XP_REPLAY;
+    run.reward = first
+        ? (run.lesson.xp || XP_LESSON) + (run.mistakes === 0 ? XP_PERFECT_BONUS : 0)
+        : XP_REPLAY;
     state.xp += run.reward;
     touchStreak();
     saveState();
@@ -568,6 +607,8 @@ playerAction.addEventListener('click', () => {
         } else {
             renderPlayer();
         }
+    } else if (run.phase === 'retry') {
+        startLesson(run.id);   // fresh queue, same quiz
     } else {
         closePlayer();   // done / out
     }
