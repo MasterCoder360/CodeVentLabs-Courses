@@ -5,7 +5,14 @@
     { "name": "worker.js", "type": "esm", "path": "./worker.js" },
     { "name": "lib/http.js", "type": "esm", "path": "./lib/http.js" },
     { "name": "lib/db.js", "type": "esm", "path": "./lib/db.js" },
+    { "name": "lib/crypto.js", "type": "esm", "path": "./lib/crypto.js" },
+    { "name": "lib/session.js", "type": "esm", "path": "./lib/session.js" },
+    { "name": "lib/validate.js", "type": "esm", "path": "./lib/validate.js" },
+    { "name": "lib/mail.js", "type": "esm", "path": "./lib/mail.js" },
     { "name": "lib/auth.js", "type": "esm", "path": "./lib/auth.js" },
+    { "name": "lib/tokens.js", "type": "esm", "path": "./lib/tokens.js" },
+    { "name": "lib/oauth.js", "type": "esm", "path": "./lib/oauth.js" },
+    { "name": "lib/admin.js", "type": "esm", "path": "./lib/admin.js" },
     { "name": "lib/progress.js", "type": "esm", "path": "./lib/progress.js" }
   ]
 }
