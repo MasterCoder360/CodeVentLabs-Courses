@@ -2,6 +2,10 @@
   "entrypoint": "worker.js",
   "compatibilityDate": "2026-11-01",
   "modules": [
-    { "name": "worker.js", "type": "esm", "path": "./worker.js" }
+    { "name": "worker.js", "type": "esm", "path": "./worker.js" },
+    { "name": "lib/http.js", "type": "esm", "path": "./lib/http.js" },
+    { "name": "lib/db.js", "type": "esm", "path": "./lib/db.js" },
+    { "name": "lib/auth.js", "type": "esm", "path": "./lib/auth.js" },
+    { "name": "lib/progress.js", "type": "esm", "path": "./lib/progress.js" }
   ]
 }
