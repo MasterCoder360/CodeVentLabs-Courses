@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account | CodeVent Labs</title>
+    <meta name="description" content="Create a CodeVent Labs account to save your XP, streak, gems and course progress to the cloud — on every device.">
+    <link rel="canonical" href="https://courses.labs.cosmospark.org/account.html" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="account.css">
+</head>
+<body class="courses-page account-page">
+
+    <!-- ===== NAVBAR (same style as labs.cosmospark.org) ===== -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-inner">
+            <div class="nav-left">
+                <a href="https://labs.cosmospark.org" class="nav-link">Home</a>
+                <a href="index.html" class="nav-link">Courses</a>
+                <a href="https://labs.cosmospark.org" class="nav-link">View More</a>
+                <a href="https://labs.cosmospark.org" class="nav-link">Our Goal</a>
+            </div>
+
+            <div class="logo">
+                <img src="navlogo.png" alt="CodeVent Labs" class="logo-default" id="logoDefault">
+                <img src="navlogo2.png" alt="CodeVent Labs" class="logo-scrolled" id="logoScrolled">
+            </div>
+
+            <div class="nav-right">
+                <a href="account.html" class="icon-btn active" aria-label="Account" title="Account">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+                <div class="cart-wrapper">
+                    <button class="icon-btn" aria-label="Cart">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                    </button>
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="account-wrap">
+
+        <header class="account-hero">
+            <div class="account-hero-icon" data-icon="user"></div>
+            <h1>Your account</h1>
+            <p>Sign in so your XP, streak, gems and lesson progress follow you to every device.</p>
+        </header>
+
+        <!-- ===== SIGNED OUT: sign in / create account ===== -->
+        <section class="account-panel" id="signedOut">
+            <form class="account-card" id="authForm" novalidate>
+                <div class="auth-tabs" role="tablist" aria-label="Sign in or create an account">
+                    <button type="button" class="auth-tab active" id="tabLogin" role="tab"
+                            aria-selected="true" data-mode="login">SIGN IN</button>
+                    <button type="button" class="auth-tab" id="tabSignup" role="tab"
+                            aria-selected="false" data-mode="signup">CREATE ACCOUNT</button>
+                </div>
+
+                <div class="field" id="nameField" hidden>
+                    <label for="authName">Name</label>
+                    <input id="authName" name="name" type="text" autocomplete="name"
+                           placeholder="Ada Lovelace" maxlength="40">
+                </div>
+
+                <div class="field">
+                    <label for="authEmail">Email</label>
+                    <input id="authEmail" name="email" type="email" autocomplete="email"
+                           placeholder="you@example.com" maxlength="254" required>
+                </div>
+
+                <div class="field">
+                    <label for="authPassword">Password</label>
+                    <div class="field-inline">
+                        <input id="authPassword" name="password" type="password"
+                               autocomplete="current-password" placeholder="At least 8 characters"
+                               maxlength="200" required>
+                        <button type="button" class="field-eye" id="authEye" aria-label="Show password"
+                                title="Show password"></button>
+                    </div>
+                </div>
+
+                <p class="form-error" id="authError" role="alert" hidden></p>
+
+                <button type="submit" class="btn-primary auth-submit" id="authSubmit">SIGN IN</button>
+
+                <p class="auth-note" id="authNote">
+                    New here? Choose <strong>Create account</strong> and your guest progress on this
+                    device comes with you.
+                </p>
+            </form>
+
+            <aside class="account-aside">
+                <h2>What gets saved</h2>
+                <ul class="perk-list">
+                    <li><span data-icon="zap"></span> XP, gems, hearts and your daily streak</li>
+                    <li><span data-icon="book"></span> Which lessons you have finished</li>
+                    <li><span data-icon="refresh-cw"></span> The same progress on every device</li>
+                </ul>
+                <p class="aside-note">
+                    <span data-icon="shield-check"></span>
+                    Your password is hashed before it is stored, and only you can read your progress.
+                </p>
+            </aside>
+        </section>
+
+        <!-- ===== SIGNED IN ===== -->
+        <section class="account-panel hidden" id="signedIn">
+            <div class="profile-card">
+                <div class="profile-avatar" data-icon="user"></div>
+                <div class="profile-text">
+                    <h2 id="profileName">Learner</h2>
+                    <p id="profileEmail"></p>
+                    <p class="profile-since" id="profileSince"></p>
+                </div>
+                <button type="button" class="btn-secondary" id="signOut">
+                    <span data-icon="log-out"></span> SIGN OUT
+                </button>
+            </div>
+
+            <div class="account-card">
+                <h2 class="card-title">Your progress</h2>
+                <div class="account-stats" id="accountStats"></div>
+
+                <h3 class="card-subtitle">Python Foundations · Unit 1</h3>
+                <ul class="lesson-list" id="accountLessons"></ul>
+
+                <p class="sync-line" id="syncLine">
+                    <span data-icon="cloud-check"></span>
+                    <span id="syncText">Saved to the cloud</span>
+                </p>
+            </div>
+
+            <p class="account-back">
+                <a href="index.html">Back to the course map</a>
+            </p>
+        </section>
+
+        <p class="account-loading" id="accountLoading" hidden>
+            <span data-icon="loader-circle"></span> Checking your account…
+        </p>
+    </main>
+
+    <footer class="footer">
+        <p>CodeVent Labs · <a href="https://labs.cosmospark.org">labs.cosmospark.org</a> · <a href="index.html">Courses</a></p>
+    </footer>
+
+    <script src="icons.js"></script>
+    <script src="lessons.js"></script>
+    <script src="cloud.js"></script>
+    <script src="account.js"></script>
+</body>
+</html>
