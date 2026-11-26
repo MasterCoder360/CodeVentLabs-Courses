@@ -1,122 +1,19 @@
-/* Accounts: password hashing, sessions, and the sign-up / sign-in routes.
+/* Accounts: the sign-up / sign-in / sign-out routes.
 
-   Passwords are never stored. Each account keeps a random salt and a
-   PBKDF2-SHA256 hash of the password; the browser only ever holds an
-   opaque session token whose SHA-256 is what the sessions table stores. */
+   Password hashing, sessions and validation live in lib/crypto.js,
+   lib/session.js and lib/validate.js so the verification and OAuth
+   routes can share them. */
 
 import { reply, fail, readJson } from './http.js';
+import { randomHex, hashPassword, safeEqual } from './crypto.js';
+import { cleanName, cleanEmail, cleanPassword } from './validate.js';
+import { createSession, currentSession, publicUser, revokeSession, userByEmail } from './session.js';
 import { loadProgress, saveProgress, sanitizeState } from './progress.js';
+import { sendVerification } from './tokens.js';
+import { providersFor } from './oauth.js';
 
-/* 100000 is the highest PBKDF2 iteration count Cloudflare Workers
-   allow; asking for more fails at runtime. */
-const PBKDF2_ITERATIONS = 100000;
-const SESSION_DAYS = 60;
 const MAX_ATTEMPTS = 12;          // failed sign-ins per email+IP
 const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
-
-const encoder = new TextEncoder();
-
-/* ---------- Crypto helpers ---------- */
-function bytesToHex(bytes) {
-    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function bytesToBase64Url(bytes) {
-    let binary = '';
-    for (const b of bytes) binary += String.fromCharCode(b);
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-function randomBytes(length) {
-    const bytes = new Uint8Array(length);
-    crypto.getRandomValues(bytes);
-    return bytes;
-}
-
-async function sha256Hex(text) {
-    const digest = await crypto.subtle.digest('SHA-256', encoder.encode(text));
-    return bytesToHex(new Uint8Array(digest));
-}
-
-async function hashPassword(password, saltHex) {
-    const salt = new Uint8Array(saltHex.match(/../g).map(h => parseInt(h, 16)));
-    const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits(
-        { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
-        key, 256);
-    return bytesToHex(new Uint8Array(bits));
-}
-
-/* Length-independent comparison so a wrong password always takes the
-   same time to reject. */
-function safeEqual(a, b) {
-    if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
-    let diff = 0;
-    for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-    return diff === 0;
-}
-
-/* ---------- Validation ---------- */
-function cleanName(raw) {
-    const name = String(raw == null ? '' : raw).trim().replace(/\s+/g, ' ');
-    if (name.length < 2) return { error: 'Please use at least 2 characters for your name.', field: 'name' };
-    if (name.length > 40) return { error: 'Names can be at most 40 characters.', field: 'name' };
-    if (/[\u0000-\u001f\u007f]/.test(name)) return { error: 'That name contains characters we can’t use.', field: 'name' };
-    return { value: name };
-}
-
-function cleanEmail(raw) {
-    const email = String(raw == null ? '' : raw).trim().toLowerCase();
-    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-        return { error: 'That email address doesn’t look right.', field: 'email' };
-    }
-    return { value: email };
-}
-
-function cleanPassword(raw) {
-    const password = String(raw == null ? '' : raw);
-    if (password.length < 8) return { error: 'Passwords need at least 8 characters.', field: 'password' };
-    if (password.length > 200) return { error: 'Passwords can be at most 200 characters.', field: 'password' };
-    return { value: password };
-}
-
-export function publicUser(row) {
-    return { id: row.id, name: row.name, email: row.email, createdAt: row.created_at };
-}
-
-/* ---------- Sessions ---------- */
-async function createSession(env, userId) {
-    const token = bytesToBase64Url(randomBytes(32));
-    const now = Date.now();
-    const expires = now + SESSION_DAYS * 86400000;
-    await env.DB.prepare(
-        'INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)'
-    ).bind(await sha256Hex(token), userId, now, expires).run();
-    return { token, expiresAt: expires };
-}
-
-function bearerToken(request) {
-    const match = /^Bearer\s+(\S+)$/i.exec(request.headers.get('Authorization') || '');
-    return match ? match[1] : null;
-}
-
-export async function currentSession(request, env) {
-    const token = bearerToken(request);
-    if (!token || token.length > 200) return null;
-    const tokenHash = await sha256Hex(token);
-    const row = await env.DB.prepare(
-        `SELECT s.token_hash AS token_hash, s.expires_at AS expires_at,
-                u.id AS id, u.name AS name, u.email AS email, u.created_at AS created_at
-           FROM sessions s JOIN users u ON u.id = s.user_id
-          WHERE s.token_hash = ?`
-    ).bind(tokenHash).first();
-    if (!row) return null;
-    if (row.expires_at < Date.now()) {
-        await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(tokenHash).run();
-        return null;
-    }
-    return { tokenHash, user: publicUser(row) };
-}
 
 /* ---------- Sign-in throttling ----------
    Per-isolate and best-effort: it slows down repeated guessing without
@@ -172,15 +69,15 @@ export async function handleSignup(request, env) {
         return fail(request, 409, 'An account with that email already exists. Try signing in instead.', 'email');
     }
 
-    const salt = bytesToHex(randomBytes(16));
+    const salt = randomHex(16);
     const passwordHash = await hashPassword(password.value, salt);
     const userId = crypto.randomUUID();
     const now = Date.now();
 
     try {
         await env.DB.prepare(
-            `INSERT INTO users (id, name, email, password_hash, salt, created_at)
-             VALUES (?, ?, ?, ?, ?, ?)`
+            `INSERT INTO users (id, name, email, password_hash, salt, created_at, email_verified)
+             VALUES (?, ?, ?, ?, ?, ?, 0)`
         ).bind(userId, name.value, email.value, passwordHash, salt, now).run();
     } catch (err) {
         // A race with another signup for the same address.
@@ -195,11 +92,16 @@ export async function handleSignup(request, env) {
     await saveProgress(env, userId, state);
 
     const session = await createSession(env, userId);
+    const verification = await sendVerification(env, {
+        id: userId, name: name.value, email: email.value, email_verified: 0,
+    });
+
     return reply(request, {
         token: session.token,
         expiresAt: session.expiresAt,
-        user: { id: userId, name: name.value, email: email.value, createdAt: now },
+        user: { id: userId, name: name.value, email: email.value, createdAt: now, emailVerified: false },
         state,
+        verification,
     }, 201);
 }
 
@@ -219,13 +121,11 @@ export async function handleLogin(request, env) {
         return fail(request, 429, 'Too many attempts. Wait a few minutes and try again.');
     }
 
-    const row = await env.DB.prepare(
-        'SELECT id, name, email, password_hash, salt, created_at FROM users WHERE email = ?'
-    ).bind(email.value).first();
+    const row = await userByEmail(env, email.value);
 
     // Hash even when the account is missing so a wrong email and a wrong
     // password take the same time.
-    const salt = row ? row.salt : bytesToHex(randomBytes(16));
+    const salt = row ? row.salt : randomHex(16);
     const candidate = await hashPassword(password, salt);
     const ok = !!row && safeEqual(candidate, row.password_hash);
 
@@ -246,9 +146,7 @@ export async function handleLogin(request, env) {
 
 export async function handleLogout(request, env) {
     const session = await currentSession(request, env);
-    if (session) {
-        await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(session.tokenHash).run();
-    }
+    if (session) await revokeSession(env, session.tokenHash);
     return reply(request, { ok: true });
 }
 
@@ -257,6 +155,7 @@ export async function handleMe(request, env) {
     if (!session) return fail(request, 401, 'Please sign in.');
     return reply(request, {
         user: session.user,
+        providers: await providersFor(env, session.user.id),
         state: await loadProgress(env, session.user.id),
     });
 }
