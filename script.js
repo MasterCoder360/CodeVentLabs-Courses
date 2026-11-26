@@ -2,11 +2,10 @@
    CodeVent Labs — Courses page logic (courses.labs.cosmospark.org)
    Duolingo-style path, XP / gems / hearts / streak.
 
-   NOTE: This is Section 1 (structure + behavior scaffold).
-   Progress currently persists in localStorage under the key
-   below; when the Accounts section lands, this same object
-   shape will sync to Neon via the API (never expose secrets
-   in the client — all writes go through a server function).
+   Progress is kept in localStorage under the key below and, when
+   someone is signed in, the same object is synced to their cloud
+   account through CLOUD (see cloud.js and cloud/worker.js). The
+   client only ever holds a session token — no database secrets.
    ============================================================ */
 
 const STORAGE_KEY = 'cvl_courses_v1';
@@ -22,7 +21,7 @@ const COURSES = [
 
 /* ---------- Default account state (guest) ---------- */
 const DEFAULT_STATE = {
-    user: null,            // set by Accounts section (Neon) later
+    user: null,            // { id, name, email } once signed in
     course: 'python',
     xp: 0,
     gems: 500,
@@ -48,9 +47,72 @@ function saveState() {
     } catch (e) {
         console.warn('Could not persist progress locally:', e);
     }
+    if (!applyingRemote) queueCloudSave();
 }
 
 let state = loadState();
+
+/* ---------- Cloud sync ----------
+   localStorage stays the working copy the page reads; while a session
+   token exists the same progress object is pushed to the account. */
+const CLOUD_SAVE_DELAY = 800;
+let applyingRemote = false;
+let cloudTimer = null;
+
+function progressOf(source) {
+    const copy = Object.assign({}, source);
+    delete copy.user;
+    return copy;
+}
+
+function cloudReady() {
+    return typeof CLOUD !== 'undefined' && CLOUD.hasToken();
+}
+
+function queueCloudSave() {
+    if (!cloudReady()) return;
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(pushCloudState, CLOUD_SAVE_DELAY);
+}
+
+async function pushCloudState() {
+    clearTimeout(cloudTimer);
+    if (!cloudReady()) return;
+    try {
+        await CLOUD.saveProgress(progressOf(state));
+    } catch (err) {
+        if (err.status === 401) signOutLocally();
+    }
+}
+
+function signOutLocally() {
+    if (typeof CLOUD !== 'undefined') CLOUD.forget();
+    state.user = null;
+    applyingRemote = true;
+    saveState();
+    applyingRemote = false;
+    renderStats();
+}
+
+/* Pull the account's progress once on load and merge whatever was
+   earned on this device (union of lessons, best of the counters). */
+async function restoreCloudAccount() {
+    if (!cloudReady()) return;
+    renderStats();
+    try {
+        const data = await CLOUD.me();
+        const merged = CLOUD.mergeProgress(progressOf(state), data.state);
+        applyingRemote = true;
+        state = Object.assign(loadState(), merged, { user: data.user });
+        saveState();
+        applyingRemote = false;
+        renderStats();
+        renderPath();
+        await CLOUD.saveProgress(progressOf(state));
+    } catch (err) {
+        if (err.status === 401) signOutLocally();
+    }
+}
 
 /* ---------- Navbar scroll behavior (same as labs.cosmospark.org) ---------- */
 const navbar = document.getElementById('navbar');
@@ -64,8 +126,17 @@ function renderStats() {
     document.getElementById('statXP').textContent = state.xp;
     document.getElementById('statGems').textContent = state.gems;
     document.getElementById('statHearts').textContent = state.hearts;
-    document.getElementById('accountName').textContent =
-        (state.user && state.user.name) ? state.user.name : 'Guest';
+    const signedIn = !!(state.user && state.user.name);
+    document.getElementById('accountName').textContent = signedIn ? state.user.name : 'Guest';
+    setAvatar(signedIn ? 'user' : 'bird');
+}
+
+function setAvatar(name) {
+    const holder = document.getElementById('avatarIcon');
+    if (!holder || holder.dataset.avatar === name) return;
+    holder.dataset.avatar = name;
+    holder.innerHTML = '';
+    holder.appendChild(iconEl(name));
 }
 
 /* ---------- Streak bookkeeping ---------- */
@@ -472,6 +543,9 @@ function finishLesson() {
     renderStats();
     run.phase = 'done';
     renderPlayer();
+
+    // Guests are invited to save this progress to an account.
+    if (!state.user) openModal(authModal);
 }
 
 playerAction.addEventListener('click', () => {
@@ -528,3 +602,4 @@ hydrateIcons();
 renderStats();
 renderCourseSelector();
 renderPath();
+restoreCloudAccount();
