@@ -4,17 +4,32 @@ Duolingo-style course map for CodeVent Labs (CosmosPark). Static site, deployabl
 
 ## Files
 - `index.html` — courses page (nav, stats bar, unit/path map, modals)
-- `script.js` — game logic: XP, gems, hearts, streaks, unlock progression (persisted in localStorage under `cvl_courses_v1`; shaped for future Neon per-account sync)
+- `script.js` — game logic: XP, gems, hearts, streaks, unlock progression (kept in localStorage under `cvl_courses_v1` and synced to the signed-in account)
+- `lessons.js` — lesson content (cards + questions) for the lesson player
+- `icons.js` — inline Lucide icon set plus the Python brand mark
+- `cloud.js` — client for the accounts API (session token, sign up / sign in, progress sync)
+- `account.html`, `account.js`, `account.css` — accounts page
 - `style.css` — CodeVent Labs design language + Duolingo palette
-- `CNAME` — points to `courses.labs.cosmospark.org` (enable "Custom domain" in repo Settings → Pages)
+- `cloud/` — the accounts & progress API (Cloudflare Worker + D1): `worker.js`, `deploy.json`, `schema.sql`
+- `CNAME` — points to `courses.labs.cosmospark.org`
+
+## Accounts & cloud progress
+The site stays static; only accounts and progress live in the cloud.
+
+- API: `https://codevent-labs-accounts-u0ia1p-preview.freebuff.site` — Worker in `cloud/worker.js`, D1 database bound as `DB`
+- Routes: `POST /api/signup`, `POST /api/login`, `POST /api/logout`, `GET /api/me`, `PUT /api/progress`
+- Passwords are stored as salted PBKDF2-SHA256 hashes (the platform caps this at 100,000 iterations); the browser only holds an opaque 60-day session token, and the database stores its SHA-256
+- CORS allows exactly `https://courses.labs.cosmospark.org` plus localhost ports for development
+- Progress documents are clamped and whitelisted server-side, so only known course/lesson ids and sane counters are stored
+- Signing in merges guest progress from the device (union of finished lessons, best of the counters) and pushes the result
+- Local development: `wrangler dev` with a D1 binding named `DB`
+- Moving to another server only means changing `CLOUD_API` in `cloud.js`
 
 ## Deploy (GitHub Pages)
-1. Create a new public/private repo (e.g. `cosmospark-courses`) and push this folder's contents to `main`.
-2. Settings → Pages → Source: `Deploy from a branch` → `main` / `(root)`.
-3. Settings → Pages → Custom domain: already set via `CNAME`. Add DNS record at your provider:
-   - `CNAME  courses.labs  ->  <username>.github.io`
-4. Enforce HTTPS once the certificate is issued.
+1. Settings → Pages → Source: `Deploy from a branch` → `main` / `(root)`.
+2. Custom domain is set via `CNAME`; DNS record `CNAME courses.labs -> <username>.github.io`.
+3. Enforce HTTPS once the certificate is issued.
 
 ## Roadmap
-- Section 2: lesson quiz screen
-- Section 3: `account.html` with Neon-backed auth (server-side proxy; never expose connection strings client-side)
+- Section 2: Units 2–3 lessons (Control Flow, Functions)
+- Section 3: the other courses behind the course flags
