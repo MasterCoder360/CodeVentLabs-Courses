@@ -5,6 +5,8 @@
    Lesson shape:
    {
      title, icon, blurb,           // shown in the map popup
+     xp?,                          // first-time reward (defaults to 15)
+     pass?, doneTitle?,            // unit quizzes: % needed to pass, result title
      intro: [                      // swipe-through teaching cards
        { icon, title, text: [paragraphs], code?, output? }
      ],
@@ -548,6 +550,133 @@ const LESSONS = {
                 answers: ['3.0'],
                 placeholder: 'Type the output…',
                 explain: 'Division with / gives a float, so 9 / 3 is 3.0 and not 3.'
+            }
+        ]
+    },
+
+    /* ---------------- UNIT 1 · QUIZ (trophy node) ---------------- */
+    'trophy-u1': {
+        title: 'Unit 1 Quiz',
+        icon: 'trophy',
+        blurb: 'The Unit 1 boss: 12 questions on print(), variables, types and maths. Score 80% to pass.',
+        pass: 80,
+        xp: 40,
+        doneTitle: 'Unit 1 complete!',
+
+        intro: [
+            {
+                icon: 'trophy',
+                title: 'Unit 1 Quiz',
+                text: [
+                    'Time to prove it. Twelve questions from all four lessons: showing text, variables, types and maths.',
+                    'Score 80% or more to pass. A wrong answer costs a heart and comes back at the end, so read each one twice.'
+                ]
+            }
+        ],
+
+        questions: [
+            {
+                type: 'choice',
+                prompt: 'Which line makes the computer show the word Hello?',
+                options: ['print("Hello")', 'say Hello', 'show("Hello")', 'display Hello'],
+                answer: 0,
+                explain: 'print() with the text in quotes is how Python shows something on screen.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show? Type it exactly.',
+                code: 'print("Taco")',
+                answers: ['Taco'],
+                placeholder: 'Type the output…',
+                explain: 'The quotes mark the text but are never shown, so the output is Taco.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What did this code just do?',
+                code: 'score = 10',
+                options: [
+                    'Stored the number 10 in a variable called score',
+                    'Showed 10 on the screen',
+                    'Added 10 to an existing score',
+                    'Created a variable called 10'
+                ],
+                answer: 0,
+                explain: 'A single equals sign stores a value under the name on its left. Nothing is shown until you print it.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show?',
+                code: 'pet = "cat"\npet = "dog"\nprint(pet)',
+                answers: ['dog'],
+                placeholder: 'Type the output…',
+                explain: 'A variable holds one value at a time. The second line replaces cat with dog, and quotes are not printed.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What is the type of the value "12"?',
+                options: ['str', 'int', 'float', 'bool'],
+                answer: 0,
+                explain: 'The quotes make it text, so it is a str. Without quotes, 12 would be an int.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'print(10 / 5)',
+                options: ['2.0', '2', '0.5', 'Error'],
+                answer: 0,
+                explain: 'Division with / always gives a float, even when the answer is whole — so 2.0, not 2.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show? Type it exactly.',
+                code: 'print(9 / 3)',
+                answers: ['3.0'],
+                placeholder: 'Type the output…',
+                explain: 'Again / returns a float: 9 / 3 is 3.0.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show?',
+                code: 'x = 5\nx = x + 2\nprint(x)',
+                answers: ['7'],
+                placeholder: 'Type the output…',
+                explain: 'Python takes the old 5, adds 2, stores 7 back into x, then prints 7.'
+            },
+            {
+                type: 'choice',
+                prompt: 'Oh no, this code has a bug! What is wrong?',
+                code: 'print("Hi)',
+                options: [
+                    'The closing quote is missing',
+                    'print should have a capital P',
+                    'There are too many brackets',
+                    'Nothing, it works fine'
+                ],
+                answer: 0,
+                explain: 'An opening quote needs a matching closing quote: print("Hi").'
+            },
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'print("2" + "3")',
+                options: ['23', '5', '2 + 3', 'Error'],
+                answer: 0,
+                explain: 'Both values are strings, so the plus sign joins them end to end: 23. Without quotes it would be 5.'
+            },
+            {
+                type: 'choice',
+                prompt: 'Which of these variable names is NOT allowed in Python?',
+                options: ['2cool', 'cool2', 'my_cool', '_cool'],
+                answer: 0,
+                explain: 'A name may contain numbers but cannot start with one, so 2cool is invalid.'
+            },
+            {
+                type: 'type',
+                prompt: 'Your turn! Store the number 9 in a variable called lives.',
+                answers: ['lives = 9'],
+                isCode: true,
+                placeholder: 'Type your code…',
+                explain: 'lives = 9 puts 9 in a box labelled lives. No quotes, because quotes would make it the text "9".'
             }
         ]
     }
