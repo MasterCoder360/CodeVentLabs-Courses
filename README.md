@@ -9,6 +9,7 @@ Duolingo-style course map for CodeVent Labs (CosmosPark). Static site, deployabl
 - `icons.js` — inline Lucide icon set plus the Python brand mark
 - `cloud.js` — client for the accounts API (session token, sign up / sign in, progress sync)
 - `account.html`, `account.js`, `account.css` — accounts page
+- `admin.html`, `admin.js`, `admin.css` — owner-only dashboard (accounts and course progress)
 - `style.css` — CodeVent Labs design language + Duolingo palette
 - `cloud/` — the accounts & progress API (Cloudflare Worker + D1): `worker.js`, `deploy.json`, `schema.sql`, `test-api.mjs`, and `lib/` (`http`, `db`, `crypto`, `session`, `validate`, `mail`, `auth`, `tokens`, `oauth`, `admin`, `progress`)
 - `CNAME` — points to `courses.labs.cosmospark.org`
@@ -50,8 +51,10 @@ GitHub and Google use the authorization-code flow, handled entirely by the Worke
 
 Register the callbacks `https://<api-host>/api/oauth/github/callback` and `https://<api-host>/api/oauth/google/callback`. A provider stays hidden on the page until its two secrets exist.
 
-### Admin upkeep
-The API can list and prune accounts when an `ADMIN_TOKEN` secret is set; every request sends it as `X-Admin-Token`, and without the secret the routes answer 404.
+### Admin
+The owner signed in with the account in `ADMIN_EMAILS` can open `admin.html`: it lists every account (name, email, join date, whether the email is confirmed, lessons finished and XP) plus totals, with a search box and a refresh button. `GET /api/admin/overview` is the data behind it and answers `401` when nobody is signed in, `403` for any other account and `200` only for an admin. `ADMIN_EMAILS` is a comma-separated list of addresses (default: the site owner's); `GET /api/me`, sign-in and sign-up also return an `admin` flag so the account page can show the ADMIN link only to that account. The gate is server-side — the page itself holds no data of its own.
+
+Upkeep from a terminal still uses an `ADMIN_TOKEN` secret; every request sends it as `X-Admin-Token`, and without the secret those routes answer 404.
 
 ```sh
 curl -H "X-Admin-Token: $ADMIN_TOKEN" https://<api-host>/api/admin/users

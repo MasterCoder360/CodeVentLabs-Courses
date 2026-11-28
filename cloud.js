@@ -180,6 +180,12 @@ const CLOUD = (() => {
             return request('/api/verify/resend', { method: 'POST' });
         },
 
+        /* The owner's dashboard. The Worker answers 401 when signed out and
+           403 for any account that is not on its admin list. */
+        async adminOverview() {
+            return request('/api/admin/overview');
+        },
+
         oauthUrl(provider) {
             return CLOUD_API + '/api/oauth/' + encodeURIComponent(provider)
                 + '/start?origin=' + encodeURIComponent(location.origin);
