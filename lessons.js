@@ -679,5 +679,151 @@ const LESSONS = {
                 explain: 'lives = 9 puts 9 in a box labelled lives. No quotes, because quotes would make it the text "9".'
             }
         ]
+    },
+
+    /* ---------------- UNIT 2 · LESSON 1 ---------------- */
+    'l2-1': {
+        title: 'Making Decisions',
+        icon: 'toggle-right',
+        blurb: 'Compare values and use if to run code only when the answer is True.',
+
+        intro: [
+            {
+                icon: 'brain',
+                title: 'A question with two answers',
+                text: [
+                    'Computers make decisions by answering yes or no questions. In Python those answers are True and False.',
+                    'A question like "is 5 bigger than 3?" is a comparison. Python works it out and hands back True or False.'
+                ],
+                code: 'print(5 > 3)\nprint(5 < 3)',
+                output: 'True\nFalse'
+            },
+            {
+                icon: 'ruler',
+                title: 'The six comparison signs',
+                text: [
+                    'Two equals signs ask "are these the same?". The sign != asks "are these different?". Then come > bigger, < smaller, >= at least and <= at most.',
+                    'Two equals signs compare, but one equals sign stores a value. They do very different jobs.'
+                ],
+                code: 'print(10 == 10)\nprint(10 != 10)\nprint(4 >= 4)',
+                output: 'True\nFalse\nTrue'
+            },
+            {
+                icon: 'toggle-right',
+                title: 'The if statement',
+                text: [
+                    'An if statement guards a block of code. Python runs that block only when the comparison is True.',
+                    'Write if, then the question, then a colon. The next line is indented to show that it belongs to the if.'
+                ],
+                code: 'if 7 > 3:\n    print("Bigger!")',
+                output: 'Bigger!'
+            },
+            {
+                icon: 'ruler',
+                title: 'Indentation is the boss',
+                text: [
+                    'Python uses indentation instead of curly brackets. Everything indented under the if is inside it, and a line back at the left edge is outside it.',
+                    'Four spaces is the usual indent. Mixing spaces and tabs upsets Python, so pick one and stick to it.'
+                ],
+                code: 'if 10 > 5:\n    print("inside the if")\nprint("always runs")',
+                output: 'inside the if\nalways runs'
+            },
+            {
+                icon: 'eye-off',
+                title: 'When the answer is False',
+                text: [
+                    'If the comparison is False, Python skips the indented block and carries on with the next line.',
+                    'That is how one program can behave differently every time it runs.'
+                ],
+                code: 'lives = 0\nif lives > 0:\n    print("Keep playing")\nprint("Game over")',
+                output: 'Game over'
+            }
+        ],
+
+        questions: [
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'print(8 > 3)',
+                options: ['True', 'False', '8 > 3', 'Error'],
+                answer: 0,
+                explain: '8 is bigger than 3, so the comparison is True. print() shows it with a capital T.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show? Type it exactly.',
+                code: 'print(4 == 4)',
+                answers: ['True'],
+                placeholder: 'Type the output…',
+                explain: 'Two equals signs ask whether the values are the same. 4 and 4 are, so the answer is True.'
+            },
+            {
+                type: 'choice',
+                prompt: 'Which sign asks whether two values are equal?',
+                options: ['==', '=', '=>', '<>'],
+                answer: 0,
+                explain: 'A double equals sign == compares. A single = stores a value in a variable, so the two are not interchangeable.'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show?',
+                code: 'print(6 != 2)',
+                answers: ['True'],
+                placeholder: 'Type the output…',
+                explain: 'The sign != means "not equal". 6 and 2 are different, so the answer is True.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'age = 12\nif age >= 12:\n    print("You can ride")',
+                options: ['You can ride', 'Nothing at all', 'True', 'Error'],
+                answer: 0,
+                explain: '>= means at least. 12 is at least 12, so the comparison is True and the indented print() runs.'
+            },
+            {
+                type: 'choice',
+                prompt: 'What does this code show?',
+                code: 'score = 3\nif score > 10:\n    print("Winner")\nprint("Done")',
+                options: ['Done', 'Winner then Done', 'Nothing at all', 'Error'],
+                answer: 0,
+                explain: '3 is not bigger than 10, so Python skips the indented block. The last line is not indented, so it always runs.'
+            },
+            {
+                type: 'choice',
+                prompt: 'Oh no, this code has a bug! What is wrong?',
+                code: 'if 5 > 2\n    print("Yes")',
+                options: [
+                    'The if line is missing its colon',
+                    'print needs a capital P',
+                    '5 > 2 is not a question Python can answer',
+                    'Nothing, it works fine'
+                ],
+                answer: 0,
+                explain: 'An if line always ends with a colon before the indented block: if 5 > 2:'
+            },
+            {
+                type: 'type',
+                prompt: 'What does this code show?',
+                code: 'x = 10\nprint(x <= 10)',
+                answers: ['True'],
+                placeholder: 'Type the output…',
+                explain: '<= means at most. 10 is at most 10, so the comparison is True.'
+            },
+            {
+                type: 'choice',
+                prompt: 'Which comparison is True when score is at least 100?',
+                options: ['score >= 100', 'score > 100', 'score = 100', 'score <= 100'],
+                answer: 0,
+                explain: '>= means at least, so 100 itself counts. > would need more than 100, and <= means at most.'
+            },
+            {
+                type: 'type',
+                prompt: 'Your turn! Type a comparison that is True when speed is more than 50.',
+                answers: ['speed > 50'],
+                isCode: true,
+                placeholder: 'Type your code…',
+                explain: 'speed > 50 asks whether speed is bigger than 50. Put it after if, add a colon, and Python is ready to decide.'
+            }
+        ]
     }
 };
