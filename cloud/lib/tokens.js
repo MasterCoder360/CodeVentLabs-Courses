@@ -17,6 +17,7 @@ import { cleanEmail, cleanPassword } from './validate.js';
 import { currentSession, createSession, publicUser, revokeAllSessions, userById, userByEmail } from './session.js';
 import { sendMail, siteUrl, mailConfigured, mailShell } from './mail.js';
 import { loadProgress } from './progress.js';
+import { isAdminEmail } from './admin.js';
 
 const TOKEN_TTL_MS = {
     verify: 24 * 60 * 60 * 1000,   // a day to click the link
@@ -176,6 +177,7 @@ export async function handleReset(request, env) {
         token: session.token,
         expiresAt: session.expiresAt,
         user: publicUser(fresh),
+        admin: isAdminEmail(env, fresh.email),
         state: await loadProgress(env, user.id),
     });
 }

@@ -11,6 +11,7 @@ import { createSession, currentSession, publicUser, revokeSession, userByEmail }
 import { loadProgress, saveProgress, sanitizeState } from './progress.js';
 import { sendVerification } from './tokens.js';
 import { providersFor } from './oauth.js';
+import { isAdminEmail } from './admin.js';
 
 const MAX_ATTEMPTS = 12;          // failed sign-ins per email+IP
 const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
@@ -100,6 +101,7 @@ export async function handleSignup(request, env) {
         token: session.token,
         expiresAt: session.expiresAt,
         user: { id: userId, name: name.value, email: email.value, createdAt: now, emailVerified: false },
+        admin: isAdminEmail(env, email.value),
         state,
         verification,
     }, 201);
@@ -140,6 +142,7 @@ export async function handleLogin(request, env) {
         token: session.token,
         expiresAt: session.expiresAt,
         user: publicUser(row),
+        admin: isAdminEmail(env, row.email),
         state: await loadProgress(env, row.id),
     });
 }
@@ -155,6 +158,9 @@ export async function handleMe(request, env) {
     if (!session) return fail(request, 401, 'Please sign in.');
     return reply(request, {
         user: session.user,
+        // Whether this account may open admin.html; the admin routes check
+        // the same list again, so this only spares the page a 403.
+        admin: isAdminEmail(env, session.user.email),
         providers: await providersFor(env, session.user.id),
         state: await loadProgress(env, session.user.id),
     });

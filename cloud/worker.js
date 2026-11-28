@@ -21,6 +21,7 @@
      GET  /api/config            which extras are configured
      GET  /api/ping              health check
 
+     GET  /api/admin/overview    accounts + totals (the owner's session)
      GET  /api/admin/users       list accounts   (X-Admin-Token)
      POST /api/admin/prune       delete accounts not in a keep list
 
@@ -39,7 +40,7 @@ import { currentSession } from './lib/session.js';
 import { sanitizeState, saveProgress } from './lib/progress.js';
 import { handleVerify, handleVerifyResend, handleForgot, handleReset } from './lib/tokens.js';
 import { handleOauthStart, handleOauthCallback, providerStatus } from './lib/oauth.js';
-import { handleAdminUsers, handleAdminPrune } from './lib/admin.js';
+import { handleAdminOverview, handleAdminUsers, handleAdminPrune } from './lib/admin.js';
 import { mailConfigured, siteUrl } from './lib/mail.js';
 
 const VERSION = '2';
@@ -98,6 +99,7 @@ export default {
                 return await handleOauthCallback(request, env, oauth[1], url);
             }
 
+            if (url.pathname === '/api/admin/overview' && request.method === 'GET') return await handleAdminOverview(request, env);
             if (url.pathname === '/api/admin/users' && request.method === 'GET') return await handleAdminUsers(request, env);
             if (url.pathname === '/api/admin/prune' && post) return await handleAdminPrune(request, env);
 
