@@ -221,7 +221,16 @@ function setVerifyMessage(message, link) {
     verifyBanner.hidden = false;
 }
 
-function renderSignedIn(user, state, providers) {
+/* The admin page is the owner's; the link only appears for that account,
+   and the Worker checks the same thing again before it answers. */
+function setAdminLink(isAdmin) {
+    const link = document.getElementById('adminLink');
+    if (!link) return;
+    link.hidden = !isAdmin;
+    if (isAdmin) hydrateIcons(link);
+}
+
+function renderSignedIn(user, state, providers, isAdmin) {
     signedOutEl.classList.add('hidden');
     resetPanel.classList.add('hidden');
     signedInEl.classList.remove('hidden');
@@ -232,6 +241,7 @@ function renderSignedIn(user, state, providers) {
     document.getElementById('profileEmail').textContent = user.email || '';
     document.getElementById('profileSince').textContent =
         user.createdAt ? 'Member since ' + formatDate(user.createdAt) : '';
+    setAdminLink(isAdmin);
 
     renderBadges(user, providers);
     verifyBanner.hidden = true;
@@ -350,7 +360,7 @@ async function submit() {
         passwordInput.value = '';
         if (mode === 'signup') {
             passwordInput.value = '';
-            renderSignedIn(result.user, state, []);
+            renderSignedIn(result.user, state, [], result.admin);
             const link = result.verification && result.verification.link;
             if (result.verification && result.verification.sent) {
                 setVerifyMessage('We sent a confirmation link to ' + result.user.email + '.');
@@ -362,7 +372,7 @@ async function submit() {
             return;
         }
 
-        renderSignedIn(result.user, state, result.providers || []);
+        renderSignedIn(result.user, state, result.providers || [], result.admin);
         await CLOUD.saveProgress(state);
         setSyncText(Date.now());
     } catch (err) {
@@ -485,7 +495,7 @@ resetForm.addEventListener('submit', async event => {
         writeLocalState(result.state, result.user);
         resetPassword.value = '';
         resetPassword2.value = '';
-        renderSignedIn(result.user, result.state, result.providers || []);
+        renderSignedIn(result.user, result.state, result.providers || [], result.admin);
         setSyncText(Date.now());
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -574,7 +584,7 @@ async function init() {
     try {
         const data = await CLOUD.me();
         writeLocalState(data.state, data.user);
-        renderSignedIn(data.user, data.state, data.providers || []);
+        renderSignedIn(data.user, data.state, data.providers || [], data.admin);
     } catch (err) {
         if (err.status === 401) CLOUD.forget();
         loadingEl.hidden = true;

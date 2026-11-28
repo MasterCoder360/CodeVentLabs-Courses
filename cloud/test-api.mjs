@@ -4,7 +4,12 @@
    via MAIL_ENDPOINT) and point BASE at it:
 
      BASE=http://127.0.0.1:8789 ADMIN_TOKEN=test-admin-token \
+       ADMIN_EMAILS=owner@example.test ADMIN_EMAIL=owner@example.test \
        node cloud/test-api.mjs
+
+   ADMIN_EMAIL is optional: it names the address the local `wrangler dev`
+   was started with in ADMIN_EMAILS, so the owner dashboard can be checked
+   as well as its signed-out and not-an-admin refusals.
 
    It signs up, confirms an email, resets a password and prunes an
    account — using throwaway addresses tagged with the current time. */
@@ -168,6 +173,37 @@ const prunedLogin = await call('/api/login', { method: 'POST', body: { email: em
 check('pruned account cannot sign in', prunedLogin.status === 401);
 const survivor = await call('/api/login', { method: 'POST', body: { email, password: 'second-password-2' } });
 check('kept account still signs in', survivor.status === 200);
+
+console.log('admin dashboard');
+const overviewAnon = await call('/api/admin/overview');
+check('overview without a session 401', overviewAnon.status === 401, overviewAnon.data);
+const learnerSession = await call('/api/login', { method: 'POST', body: { email, password: 'second-password-2' } });
+const overviewLearner = await call('/api/admin/overview', { token: learnerSession.data.token });
+check('overview for a learner 403', overviewLearner.status === 403, overviewLearner.data);
+check('learner session is not flagged admin', learnerSession.data.admin === false, learnerSession.data.admin);
+
+const adminEmail = process.env.ADMIN_EMAIL || '';
+if (adminEmail) {
+    let owner = await call('/api/signup', {
+        method: 'POST',
+        body: { name: 'Site Owner', email: adminEmail, password },
+    });
+    if (owner.status === 409) {
+        owner = await call('/api/login', { method: 'POST', body: { email: adminEmail, password } });
+    }
+    check('owner account has a session', owner.status === 200 || owner.status === 201, owner.data);
+    check('owner sign-in is flagged admin', owner.data.admin === true, owner.data.admin);
+
+    const overview = await call('/api/admin/overview', { token: owner.data.token });
+    check('overview for the owner 200', overview.status === 200, overview.data);
+    check('overview counts the accounts', overview.data.totals && overview.data.totals.accounts >= 2, overview.data.totals);
+    check('overview rows match the total', Array.isArray(overview.data.users)
+        && overview.data.users.length === overview.data.totals.accounts, overview.data.users && overview.data.users.length);
+    check('overview knows who is asking', overview.data.admin === adminEmail, overview.data.admin);
+    check('overview exposes no secrets', !/password|salt|token_hash/i.test(JSON.stringify(overview.data)), null);
+} else {
+    console.log('  (skipped owner overview: set ADMIN_EMAILS and ADMIN_EMAIL to check it)');
+}
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
