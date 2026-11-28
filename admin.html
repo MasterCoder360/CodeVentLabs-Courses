@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | CodeVent Labs</title>
+    <meta name="description" content="Owner dashboard for CodeVent Labs Courses.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="https://courses.labs.cosmospark.org/admin.html" />
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="account.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body class="courses-page account-page admin-page">
+
+    <!-- ===== NAVBAR (same style as labs.cosmospark.org) ===== -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-inner">
+            <div class="nav-left">
+                <a href="https://labs.cosmospark.org" class="nav-link">Home</a>
+                <a href="index.html" class="nav-link">Courses</a>
+                <a href="https://labs.cosmospark.org" class="nav-link">View More</a>
+                <a href="https://labs.cosmospark.org" class="nav-link">Our Goal</a>
+            </div>
+
+            <div class="logo">
+                <img src="navlogo.png" alt="CodeVent Labs" class="logo-default" id="logoDefault">
+                <img src="navlogo2.png" alt="CodeVent Labs" class="logo-scrolled" id="logoScrolled">
+            </div>
+
+            <div class="nav-right">
+                <a href="account.html" class="icon-btn" aria-label="Account" title="Account">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+                <a href="admin.html" class="icon-btn active" aria-label="Admin" title="Admin">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
+                        <path d="m9 12 2 2 4-4"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="account-wrap admin-wrap">
+
+        <header class="account-hero">
+            <div class="account-hero-icon" data-icon="shield-check"></div>
+            <h1>Admin</h1>
+            <p>Accounts, sign-ups and course progress across CodeVent Labs.</p>
+        </header>
+
+        <p class="account-loading" id="adminLoading">
+            <span data-icon="loader-circle"></span> Checking your account…
+        </p>
+
+        <!-- ===== NOT THE OWNER ===== -->
+        <section class="account-panel hidden" id="adminDenied">
+            <div class="account-card admin-denied">
+                <div class="admin-denied-icon" data-icon="lock"></div>
+                <h2 class="card-title" id="deniedTitle">Admins only</h2>
+                <p class="admin-denied-text" id="deniedText">
+                    This page belongs to the site owner. Sign in with that account to see it.
+                </p>
+                <p class="admin-denied-actions">
+                    <a class="btn-primary" id="deniedAction" href="account.html">SIGN IN</a>
+                    <a class="admin-plain-link" href="index.html">Back to the course map</a>
+                </p>
+            </div>
+        </section>
+
+        <!-- ===== THE OWNER ===== -->
+        <section class="account-panel hidden" id="adminPanel">
+            <div class="account-card">
+                <div class="admin-bar">
+                    <div>
+                        <h2 class="card-title">Overview</h2>
+                        <p class="admin-sub" id="adminSub"></p>
+                    </div>
+                    <button type="button" class="btn-secondary admin-refresh" id="adminRefresh">
+                        <span data-icon="refresh-cw"></span> REFRESH
+                    </button>
+                </div>
+                <div class="admin-stats" id="adminStats"></div>
+            </div>
+
+            <div class="account-card">
+                <div class="admin-bar">
+                    <div>
+                        <h2 class="card-title">Accounts</h2>
+                        <p class="admin-sub" id="adminCount"></p>
+                    </div>
+                    <input class="admin-search" id="adminSearch" type="search"
+                           placeholder="Search name or email" aria-label="Search accounts"
+                           autocomplete="off" spellcheck="false">
+                </div>
+
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Learner</th>
+                                <th scope="col">Joined</th>
+                                <th scope="col" class="num">Lessons</th>
+                                <th scope="col" class="num">XP</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminRows"></tbody>
+                    </table>
+                </div>
+
+                <p class="admin-empty" id="adminEmpty" hidden>No accounts match that search.</p>
+                <p class="admin-foot" id="adminFoot"></p>
+            </div>
+
+            <p class="account-back">
+                <a href="account.html">Your own account</a> · <a href="index.html">Course map</a>
+            </p>
+        </section>
+
+        <p class="form-error admin-error" id="adminError" role="alert" hidden></p>
+    </main>
+
+    <footer class="footer">
+        <p>CodeVent Labs · <a href="https://labs.cosmospark.org">labs.cosmospark.org</a> · <a href="index.html">Courses</a></p>
+    </footer>
+
+    <script src="icons.js"></script>
+    <script src="cloud.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

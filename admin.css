@@ -1,0 +1,134 @@
+/* ============================================================
+   ADMIN PAGE (admin.html) — builds on account.css
+   ============================================================ */
+
+.admin-wrap { max-width: 1000px; }
+
+/* The hidden attribute loses to class rules that set display. */
+.admin-link[hidden],
+.admin-page .account-panel.hidden,
+#adminPanel.hidden,
+#adminDenied.hidden { display: none; }
+
+.admin-error { max-width: 520px; margin: 20px auto 0; }
+
+.admin-denied {
+    max-width: 520px;
+    margin: 0 auto;
+    text-align: center;
+}
+.admin-denied-icon { line-height: 1; }
+.admin-denied-icon .icon { width: 42px; height: 42px; color: #AFAFAF; }
+.admin-denied .card-title { margin: 12px 0 8px; }
+.admin-denied-text {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: #777;
+    margin-bottom: 20px;
+}
+.admin-denied-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.admin-denied-actions .btn-primary { padding: 13px 26px; }
+.admin-plain-link {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1CB0F6;
+    text-decoration: none;
+}
+.admin-plain-link:hover { text-decoration: underline; }
+
+.admin-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.admin-bar .card-title { margin-bottom: 4px; }
+.admin-sub { font-size: 13px; color: #999; line-height: 1.5; }
+.admin-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 10px 14px;
+}
+.admin-refresh .icon { width: 16px; height: 16px; }
+.admin-refresh:disabled { opacity: 0.55; cursor: default; }
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.admin-search {
+    width: 230px;
+    max-width: 100%;
+    padding: 11px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #3C3C3C;
+    background: #F7F7F7;
+    border: 2px solid #E5E5E5;
+    border-radius: 12px;
+    outline: none;
+}
+.admin-search:focus { border-color: #84D8FF; background: #fff; }
+
+.admin-table-wrap { overflow-x: auto; }
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 560px;
+}
+.admin-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: #AFAFAF;
+    padding: 0 12px 10px;
+    border-bottom: 2px solid #E5E5E5;
+    white-space: nowrap;
+}
+.admin-table th.num,
+.admin-table td.num { text-align: right; }
+.admin-table td {
+    padding: 12px;
+    border-bottom: 2px solid #F3F3F3;
+    color: #3C3C3C;
+    vertical-align: middle;
+}
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-name { display: block; font-weight: 700; }
+.admin-email {
+    display: block;
+    font-size: 12.5px;
+    color: #999;
+    word-break: break-all;
+}
+.admin-date { color: #777; white-space: nowrap; }
+.admin-table td.num { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.admin-empty,
+.admin-foot {
+    font-size: 13px;
+    color: #999;
+    line-height: 1.55;
+}
+.admin-empty { padding: 18px 2px 0; }
+.admin-empty[hidden] { display: none; }
+.admin-foot { margin-top: 14px; border-top: 2px solid #F3F3F3; padding-top: 12px; }
+
+@media (max-width: 600px) {
+    .admin-search { width: 100%; }
+    .admin-refresh { width: 100%; justify-content: center; }
+}
